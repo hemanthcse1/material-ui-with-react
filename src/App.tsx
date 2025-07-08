@@ -1,13 +1,13 @@
-import React from 'react';
-import logo from './logo.svg';
+
 import './App.css';
 import { Button, Card, CardContent, TextField } from '@mui/material';
-import Typography from '@mui/material/Typography'
+import HomeIcon from '@mui/icons-material/Home'
+import LoginPage from './features/login/LoginPage'
 
 function App() {
   return (
-    <div style={{padding: 20}}>
-      
+    <div style={{padding: 0}}>
+      <LoginPage />
     </div>
   );
 }
