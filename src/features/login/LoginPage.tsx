@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import PersonIcon from '@mui/icons-material/Person'
 import LockIcon from '@mui/icons-material/Lock'
+import { loginUser } from "../../api/userApi";
 
 
 const LoginPage = () => {
@@ -40,24 +41,50 @@ const LoginPage = () => {
         return isValid;
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if(validate()){
-            console.log("Login with details ", {username, password, rememberMe})
+        if(!validate()){
             setSnackBar({
                 open: true,
-                message: 'Login successfully!',
-                severity: 'success'
+                message: "Login failed. Please fill in all fields.",
+                severity: 'error'
             });
-        }else {
+            return;
+        }
+
+        try {
+            const response = await loginUser({ emailId: username, password});
+             if (response.success) {
+                    setSnackBar({
+                        open: true,
+                        message: response.message || 'Login successful!',
+                        severity: 'success'
+                    });
+
+                    console.log('name:', response.data.firstName)
+                    console.log('name:', response.data.lastName)
+                    console.log('name:', response.data.emailId)
+
+                // Optional: store token or user data
+                // localStorage.setItem('user', JSON.stringify(response.data));
+            } else {
+                setSnackBar({
+                open: true,
+                message: response.message || 'Invalid credentials!',
+                severity: 'error'
+                });
+            }
+
+        }catch (error: any){
             setSnackBar({
                 open: true,
-                message: "Login failed",
+                message: error.response?.data?.message || 'Login failed!',
                 severity: 'error'
             });
         }
     }
+
     return(
         <Grid
             container
@@ -135,7 +162,7 @@ const LoginPage = () => {
                 autoHideDuration={3000}
                 onClose={handleCloseSnackBar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center'}}>
-                    <Alert onClose={handleCloseSnackBar} security={snackbar.severity} sx={{ width: '100%'}}>
+                    <Alert onClose={handleCloseSnackBar} severity={snackbar.severity} sx={{ width: '100%'}}>
                         {snackbar.message}
                     </Alert>
             </Snackbar>
