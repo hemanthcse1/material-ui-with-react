@@ -4,6 +4,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import PersonIcon from '@mui/icons-material/Person'
 import LockIcon from '@mui/icons-material/Lock'
 import { loginUser } from "../../api/userApi";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 
 const LoginPage = () => {
@@ -146,10 +147,10 @@ const LoginPage = () => {
                         </Button>
 
                         <Grid container justifyContent='space-between'>
-                            <Link href="#" variant="body2">
+                            <Link component={RouterLink} to='/forgotpassword' variant="body2">
                                 Forgot Password?
                             </Link>
-                            <Link href="#" variant="body2">
+                            <Link component={RouterLink} to='/signup' variant="body2">
                                 Sign Up?
                             </Link>
                         </Grid>
