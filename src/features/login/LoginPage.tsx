@@ -1,5 +1,5 @@
 import { Avatar, Box, Card, Checkbox, Link, CardContent, FormControlLabel, Grid, TextField, Typography, Button, Snackbar, Alert } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import PersonIcon from '@mui/icons-material/Person'
 import LockIcon from '@mui/icons-material/Lock'
@@ -8,6 +8,14 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 
 const LoginPage = () => {
+
+
+    useEffect(() => {
+    const token = localStorage.getItem('token');
+        if (token) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, []);
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -42,6 +50,8 @@ const LoginPage = () => {
         return isValid;
     }
 
+    const navigate = useNavigate();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -57,6 +67,13 @@ const LoginPage = () => {
         try {
             const response = await loginUser({ emailId: username, password});
              if (response.success) {
+
+                    const { token, firstName, lastName, emailId } = response.data;
+
+                    // Store token and user info in localStorage
+                    localStorage.setItem("token", token);
+                    localStorage.setItem("user", JSON.stringify({ firstName, lastName, emailId }));
+
                     setSnackBar({
                         open: true,
                         message: response.message || 'Login successful!',
@@ -66,6 +83,8 @@ const LoginPage = () => {
                     console.log('name:', response.data.firstName)
                     console.log('name:', response.data.lastName)
                     console.log('name:', response.data.emailId)
+
+                    navigate('/dashboard', { replace: true });
 
                 // Optional: store token or user data
                 // localStorage.setItem('user', JSON.stringify(response.data));

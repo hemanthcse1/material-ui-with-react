@@ -1,25 +1,140 @@
-import { Avatar, Box, CardContent, Grid, TextField } from "@mui/material";
+import { Avatar, Box, Button, Link, CardContent, Grid, TextField } from "@mui/material";
 import React from "react";
-import { Card } from "@mui/material";
+import { Card, Snackbar, Alert } from "@mui/material";
 import { useState } from "react";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { Email, Password, Person, Phone } from "@mui/icons-material";
 import LockIcon from '@mui/icons-material/Lock'
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { signupUser } from "../../api/userApi";
 
 const SignupPage = () => {
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [emailId, setEmailId] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [emailId, setEmailId] = useState('');
+    const [mobileNumber, setMobileNumber] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [errors, setErrors] = useState({firstName: '', lastName: '', emailId: '', mobileNumber: '', password: '', confirmPassword: ''})
+    const [errors, setErrors] = useState({firstName: '', lastName: '', emailId: '', mobileNumber: '', password: '', confirmPassword: ''})
 
-  const handleSubmit = () => {
+    const [snackbar, setSnackBar] = useState({
+      open: false,
+      severity: 'success' as 'success' | 'error',
+      message: ' ' 
+    });
 
-  }
+     const handleCloseSnackBar = () => {
+        setSnackBar(prev => ({...prev, open: false}));
+    }
+
+    const validate = () => {
+      let isValid = true;
+      const newErrors = {
+        firstName: '', 
+        lastName: '', 
+        emailId: '', 
+        mobileNumber: '',
+        password: '',
+        confirmPassword: ''
+      }
+
+      if(!firstName.trim()){
+        newErrors.firstName = 'First Name required';
+        isValid = false;
+      }
+
+      if(!lastName.trim()){
+        newErrors.lastName = 'Last Name required';
+        isValid = false;
+      }
+
+      if(!emailId.trim()){
+        newErrors.emailId = 'Email Id required';
+        isValid = false;
+      }
+
+      if(!mobileNumber.trim()){
+        newErrors.mobileNumber = 'Mobile Number required';
+        isValid = false;
+      }
+
+      if(!password.trim()){
+        newErrors.password = 'Password required';
+        isValid = false;
+      }
+
+      if(!confirmPassword.trim()){
+        newErrors.confirmPassword = 'Confirm password required';
+        isValid = false;
+      }
+
+      if(password != confirmPassword){
+        newErrors.confirmPassword = 'Password and confirm password didn\'t match';
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      return isValid;
+    };
+
+    const handleSubmit = async (e: React.FocusEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if(!validate()){
+          setSnackBar({
+            open: true,
+            message: 'Signup failed, please fill in all the fields',
+            severity: 'error'
+          });
+          return;
+        }
+
+        try{
+          const response = await signupUser({firstName, lastName, emailId, mobileNumber, password});
+          if(response.success){
+            setSnackBar({
+              open: true,
+              message: response.message || 'Registration successful!',
+              severity: 'success'
+            })
+
+             // ✅ Clear all form fields
+            setFirstName('');
+            setLastName('');
+            setEmailId('');
+            setMobileNumber('');
+            setPassword('');
+            setConfirmPassword('');
+
+            // ✅ Also clear previous validation errors if needed
+            setErrors({
+              firstName: '',
+              lastName: '',
+              emailId: '',
+              mobileNumber: '',
+              password: '',
+              confirmPassword: ''
+            });
+
+            console.log("First Name: ", response.data.firstName)
+            console.log("Last Name ", response.data.lastName)
+          }else {
+            setSnackBar({
+              open: true,
+              message: response.message || 'Registration failed',
+              severity: 'error'
+            })
+          }
+        }catch(error: any){
+          setSnackBar({
+            open: true,
+            message: error.response?.data?.message || 'Registration failed with error ',
+            severity: 'error'
+          })
+        }
+    };
 
   return (
     <Grid
@@ -124,6 +239,7 @@ const SignupPage = () => {
                     fullWidth
                     margin='normal'
                     label='Confirm Password'
+                    type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     error={Boolean(errors.confirmPassword)}
@@ -133,10 +249,41 @@ const SignupPage = () => {
                     }}
                     variant='outlined'
                   />
+
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    sx={{mt: 2, mb: 1}}
+                    >
+                    Signup
+                  </Button>
+
+                  <Grid
+                    container justifyContent='space-between'>
+                      <Link component={RouterLink} to={'/forgotpassword'} variant="body2">
+                        Forgot Password?
+                      </Link>
+
+                      <Link component={RouterLink} to={'/login'} variant="body2">
+                        Login
+                      </Link>
+                  </Grid>
                   
             </Box>
           </CardContent>
         </Card>
+        
+        <Snackbar
+            open={snackbar.open}
+            autoHideDuration={3000}
+            onClose={handleCloseSnackBar}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center'}}>
+            <Alert onClose={handleCloseSnackBar} severity={snackbar.severity} sx={{ width: '100%'}}>
+                  {snackbar.message}
+            </Alert>
+        </Snackbar>
     </Grid>
   );
 };
