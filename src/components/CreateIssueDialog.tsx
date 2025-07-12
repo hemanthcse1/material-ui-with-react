@@ -1,10 +1,11 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Grid } from '@mui/material';
+import { fetchActiveProjects, Project } from "../api/createIssueApi";
+import { wait } from "@testing-library/user-event/dist/utils";
 
 
-const projectOptions = ['Nestly-backend','Nestly-frontend', 'Figma-design'];
 const issueTypes = ['Bug', 'Task', 'Technical Task', 'Story'];
 const priorities = ['Low', 'Medium', 'High'];
 
@@ -15,8 +16,23 @@ interface Props {
 
 const CreateIssueDialog = ({open, onClose}: Props) => {
 
-    const [project, setProject] = useState('');
+    const [projectOptions, setProjectOptions] = useState<Project[]>([]);
+    const [selectedProjectName, setSelectedProjectName] = useState<string>('');
+
     const [issueType, setIssueType] = useState('');
+    const [activeTab, setActiveTab] = useState(0)
+
+    useEffect(() => {
+        const getProjects = async () =>{
+            try{
+                const data = await fetchActiveProjects();
+                setProjectOptions(data)
+            }catch(error){
+                console.log('failed to fetch projects',error)
+            }
+        }
+        getProjects()
+    }, [])
 
     const handleSubmit = () => {
 
@@ -37,23 +53,25 @@ const CreateIssueDialog = ({open, onClose}: Props) => {
 
                 <Box display='flex' alignItems='center' gap={2} mb={2}>
 
-                    <Typography variant='h6' fontWeight='bold'>
+                    <Typography variant='h6' fontWeight='bold' width='200px' textAlign='right'>
                         Project<Typography component='span' color='error'>*</Typography>
                     </Typography>
                     <TextField 
                         select
                         label='Project'
-                        value={project}
-                        onChange={(e) => setProject(e.target.value)}
+                        value={selectedProjectName}
+                        onChange={(e) => setSelectedProjectName(e.target.value)}
                         sx={{width: '300px'}}>
                             {projectOptions.map((proj) => (
-                                <MenuItem key={proj} value={proj}>{proj}</MenuItem>
+                            <MenuItem key={proj.name} value={proj.name}>
+                            {proj.name}
+                             </MenuItem>
                             ))}
                     </TextField>
                 </Box>
 
                 <Box display='flex' alignItems='center' gap={2} mb={2}>
-                    <Typography variant='h6' fontWeight='bold'>
+                    <Typography variant='h6' fontWeight='bold' width='200px' textAlign='right'>
                         Issue Type<Typography component='span' color='error'>*</Typography>
                     </Typography>
                     <TextField
@@ -69,6 +87,8 @@ const CreateIssueDialog = ({open, onClose}: Props) => {
                             }
                     </TextField>
                 </Box>
+
+                
 
             </DialogContent>
 
